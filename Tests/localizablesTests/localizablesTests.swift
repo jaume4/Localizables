@@ -1,50 +1,106 @@
 // localizablesTests.swift
 // Localizables
 
-import class Foundation.Bundle
+@testable import LocalizablesCore
 import XCTest
 
-final class localizablesTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
+final class LocalizablesTests: XCTestCase {
+    func testLocalizableLineParser() throws {
+        let testKey = "This_is_a_key"
+        let separator = " ="
 
-        // Some of the APIs that we use below are available in macOS 10.13 and above.
-        guard #available(macOS 10.13, *) else {
-            return
-        }
+        let end = """
+        line
+        new line
+        """
 
-        // Mac Catalyst won't have `Process`, but it is supported for executables.
-        #if !targetEnvironment(macCatalyst)
+        let testValue = #"\"Escaped\n\\\"\"\"input\""# + end
 
-            let fooBinary = productsDirectory.appendingPathComponent("localizables")
+        let comment = "  // comment"
 
-            let process = Process()
-            process.executableURL = fooBinary
+        var input = ("\"" + testKey + "\"" + separator + "\"" + testValue + "\" ;" + comment)[...]
+        print(input)
 
-            let pipe = Pipe()
-            process.standardOutput = pipe
+        let (key, value) = try LocalizableLineParser().parse(&input.utf8)
 
-            try process.run()
-            process.waitUntilExit()
-
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let output = String(data: data, encoding: .utf8)
-
-            XCTAssertEqual(output, "Hello, world!\n")
-        #endif
+        XCTAssertEqual(key, testKey)
+        XCTAssertEqual(value, testValue)
+        XCTAssertEqual(input, comment[...])
     }
 
-    /// Returns path to the built products directory.
-    var productsDirectory: URL {
-        #if os(macOS)
-            for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-                return bundle.bundleURL.deletingLastPathComponent()
-            }
-            fatalError("couldn't find the products directory")
-        #else
-            return Bundle.main.bundleURL
-        #endif
+    func testLocalizablesParserFailsOnBadInput() throws {
+        let badInputs = [
+            #""key = "value";"#,
+            #"key = "value";"#,
+            #""key" = "value;"#,
+            #""key" = value";"#,
+            #""key" "value";"#,
+            #""key" = "value""#,
+            #""key" = " "value";"#,
+            """
+            "key" = "value";
+            "fail" = "novalue"
+            "miss" = "yes"
+            """,
+        ]
+
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[0]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[1]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[2]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[3]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[4]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[5]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[6]))
+        XCTAssertThrowsError(try LocalizablesParser.parse(from: badInputs[7]))
+    }
+
+    func testLocalizablesParser() throws {
+        let testValue = #"\"Escaped\n\\\"\"\"input\"linenew line"# +
+            """
+            line1
+            line2
+            """
+
+        let testString = """
+        /*
+            TEST COMMMENT
+
+        */
+
+        // more comments
+
+        "key1" = "value1";
+        "key2"= "//value2"    ;// end comment
+        /* line comment */
+        // more
+        "key3" ="value3" ;// line at end
+
+        "key_4" = "value4";
+        "key5" ="\(testValue)"; // comment
+        /* more*/
+        "key6"   =    "value6
+        with line";
+
+        """
+
+        let literals = try LocalizablesParser.parse(from: testString)
+        XCTAssertEqual(literals.count, 6)
+        XCTAssertEqual(literals[0].key, "key1")
+        XCTAssertEqual(literals[0].value, "value1")
+
+        XCTAssertEqual(literals[1].key, "key2")
+        XCTAssertEqual(literals[1].value, "//value2")
+
+        XCTAssertEqual(literals[2].key, "key3")
+        XCTAssertEqual(literals[2].value, "value3")
+
+        XCTAssertEqual(literals[3].key, "key_4")
+        XCTAssertEqual(literals[3].value, "value4")
+
+        XCTAssertEqual(literals[4].key, "key5")
+        XCTAssertEqual(literals[4].value, testValue)
+
+        XCTAssertEqual(literals[5].key, "key6")
+        XCTAssertEqual(literals[5].value, "value6\nwith line")
     }
 }

@@ -66,11 +66,15 @@ struct LocalizableLineParser: Parser {
                 foundCloseSemicolon = true
                 return false
             case (true, false) where value != .semicolon && value != .space:
-                throw ParsingError(description: "Unexpected character found after closing \": \(Character(UnicodeScalar(value)))")
+                throw ParsingError(description: #"Unexpected character found after closing `"` -> ""# + "\(Character(UnicodeScalar(value)))")
             default: break
             }
 
             return true
+        }
+
+        guard foundCloseQuote, foundCloseSemicolon else {
+            throw ParsingError(description: "Unterminated value")
         }
 
         let endIndex = input.index(input.startIndex, offsetBy: valueEndPosition)
