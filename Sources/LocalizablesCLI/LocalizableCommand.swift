@@ -3,6 +3,7 @@
 
 import ArgumentParser
 import Foundation
+import LocalizablesCore
 
 @main
 struct LocalizableCommand: ParsableCommand {

@@ -4,7 +4,7 @@
 import Foundation
 import Parsing
 
-public enum LocalizablesParser {
+enum LocalizablesParser {
     static let commentParser = Parse {
         "/*".utf8
         Skip {

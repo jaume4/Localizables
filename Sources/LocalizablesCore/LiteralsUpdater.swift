@@ -112,10 +112,6 @@ public struct LiteralsUpdater {
             }
         }
 
-        if #available(macOS 10.15, *) {
-            try handle.close()
-        } else {
-            handle.closeFile()
-        }
+        try handle.close()
     }
 }

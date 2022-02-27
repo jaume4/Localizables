@@ -8,9 +8,7 @@ import Parsing
 struct LocalizableLineParser: Parser {
     @inlinable
     @inline(__always)
-    func parse(
-        _ input: inout Substring.UTF8View
-    ) throws -> Literal {
+    func parse(_ input: inout Substring.UTF8View) throws -> Literal {
         guard input.first == .quote else {
             throw ParsingError(description: "Line does not start with \"")
         }
@@ -36,7 +34,8 @@ struct LocalizableLineParser: Parser {
                 break
             case true where value == .quote:
                 return false
-            default: throw ParsingError(description: "Found unexpected character between key and value: \(String(value))")
+            default:
+                throw ParsingError(description: "Found unexpected character between key and value: \(String(value))")
             }
 
             return true
@@ -62,12 +61,12 @@ struct LocalizableLineParser: Parser {
                 // this is a unescaped quote, mark final position
                 foundCloseQuote = true
                 valueEndPosition = index
-            case (true, false) where value != .semicolon && value != .space:
-                throw ParsingError(description: "Unexpected character found after closing \": \(Character(UnicodeScalar(value)))")
             case (true, false) where value == .semicolon:
                 // that's it
                 foundCloseSemicolon = true
                 return false
+            case (true, false) where value != .semicolon && value != .space:
+                throw ParsingError(description: "Unexpected character found after closing \": \(Character(UnicodeScalar(value)))")
             default: break
             }
 

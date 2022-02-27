@@ -3,7 +3,7 @@
 
 import Foundation
 
-extension URL {
+public extension URL {
     var fileURL: URL {
         if scheme == nil {
             return URL(string: "file://" + absoluteString)!
