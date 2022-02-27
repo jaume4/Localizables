@@ -6,9 +6,9 @@ import Parsing
 
 enum LiteralsParser {
     private static let commentParser = Parse {
-        "/*"
+        "/*".utf8
         Skip {
-            PrefixThrough("*/")
+            PrefixThrough("*/".utf8)
         }
     }
 
@@ -24,21 +24,21 @@ enum LiteralsParser {
     }
 
     private static let keyParse = Parse {
-        "\""
-        PrefixUpTo("\"").map(String.init)
-        "\""
+        "\"".utf8
+        PrefixUpTo("\"".utf8).compactMap(String.init)
+        "\"".utf8
     }
 
     private static let valueParse = Parse {
-        "\""
-        PrefixUpTo("\";").map(String.init)
-        "\";"
+        "\"".utf8
+        PrefixUpTo("\";".utf8).compactMap(String.init)
+        "\";".utf8
     }
 
     private static let keysParser = Parse {
         interStringsParser
         keyParse
-        " = "
+        " = ".utf8
         valueParse
     }
 
@@ -49,6 +49,6 @@ enum LiteralsParser {
     }
 
     static func parse(from string: String) throws -> [(key: String, value: String)] {
-        try manyKeys.parse(string)
+        try manyKeys.parse(string[...].utf8)
     }
 }

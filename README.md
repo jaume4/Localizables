@@ -1,3 +1,8 @@
-# localizables
+# update-localizables
+```
+USAGE: localizables <origin-file> <destination-file>
 
-A description of this package.
+ARGUMENTS:
+  <origin-file>           Path to the origin localizable file
+  <destination-file>      Path to the target localizable file to update
+```
