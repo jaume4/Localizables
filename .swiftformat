@@ -1,0 +1,3 @@
+--header "{file}\nLocalizables"
+--stripunusedargs closure-only
+--exclude Pods
