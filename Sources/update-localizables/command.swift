@@ -16,19 +16,33 @@ struct Localizables: ParsableCommand {
         let originURL = URL(string: originFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
         let destinationURL = URL(string: destinationFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
 
-        let originString = try String(contentsOf: originURL)
-
-        let destinationString = try String(contentsOf: destinationURL)
-
         print("reading destination file")
-        let targetKeys = try LiteralsParser.parse(from: destinationString)
-        print("found \(targetKeys.count) keys on destination file")
+        let destinationString = try String(contentsOf: destinationURL)
+        let destinationKeys = try LiteralsParser.parse(from: destinationString)
+
+        print("found \(destinationKeys.count) keys on destination file")
+
+        var keys: Set<String> = Set(minimumCapacity: destinationKeys.count)
+
+        do {
+            let duplicatedKeys = destinationKeys
+                .map(\.key)
+                .filter { !keys.insert($0).inserted }
+
+            if !duplicatedKeys.isEmpty {
+                print("warning, duplicated keys found, unique keys: \(keys.count), duplicated: \(duplicatedKeys.count)")
+                print("\n----------------")
+                print(duplicatedKeys.joined(separator: "\n"))
+                print("---------------\n")
+            }
+        }
 
         print("reading origin file")
+        let originString = try String(contentsOf: originURL)
         let originValues = try LiteralsParser.parse(from: originString)
+
         print("found \(originValues.count) keys on origin file")
 
-        let keys = Set(targetKeys.map(\.key))
         var foundKeys: Set<String> = []
 
         var destinationValues: [(key: String, value: String)] = []
@@ -42,11 +56,12 @@ struct Localizables: ParsableCommand {
         let notFoundKeys = keys.subtracting(foundKeys)
 
         if !notFoundKeys.isEmpty {
-            print("missing keys\n----------------")
-            print(notFoundKeys.joined(separator: "\n"))
-            print("---------------")
+            print("warning, missing keys found: \(notFoundKeys.count)")
+            print("\n----------------")
+            print(notFoundKeys.lazy.joined(separator: "\n"))
+            print("---------------\n")
 
-            for (key, value) in targetKeys {
+            for (key, value) in destinationKeys {
                 if foundKeys.insert(key).inserted {
                     destinationValues.append((key, value))
                 }
@@ -56,7 +71,7 @@ struct Localizables: ParsableCommand {
             print("no missing keys!")
         }
 
-        destinationValues.sort(by: { $0.key < $1.key })
+        destinationValues.sort(by: { $0.key.caseInsensitiveCompare($1.key) == .orderedAscending })
 
         try "".write(to: destinationURL, atomically: true, encoding: .utf8) // reset file
         let handle = try FileHandle(forWritingTo: destinationURL)
