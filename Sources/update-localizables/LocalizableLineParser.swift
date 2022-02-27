@@ -10,7 +10,7 @@ struct LocalizableLineParser: Parser {
     @inline(__always)
     func parse(
         _ input: inout Substring.UTF8View
-    ) throws -> (key: String, value: String) {
+    ) throws -> Literal {
         guard input.first == .quote else {
             throw ParsingError(description: "Line does not start with \"")
         }

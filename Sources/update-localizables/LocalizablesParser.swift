@@ -34,7 +34,7 @@ public enum LocalizablesParser {
     }
 
     @usableFromInline
-    static let manyKeys = Many {
+    static let manyKeys = Many(atLeast: 1) {
         LocalizableLineParser()
     } separator: {
         interStringsParser
