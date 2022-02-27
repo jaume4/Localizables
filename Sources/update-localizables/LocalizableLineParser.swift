@@ -1,22 +1,11 @@
-// parser.swift
+// LocalizableLineParser.swift
 // Localizables
 
 import Foundation
 import Parsing
 
-struct ParsingError: Error {
-    let description: String
-}
-
-struct LiteralsParser: Parser {
-    private init() {}
-
-    @inlinable
-    @inline(__always)
-    static func parse(from string: String) throws -> [(key: String, value: String)] {
-        try manyKeys.parse(string[...].utf8)
-    }
-
+@usableFromInline
+struct LocalizableLineParser: Parser {
     @inlinable
     @inline(__always)
     func parse(
@@ -61,24 +50,23 @@ struct LiteralsParser: Parser {
 
         var index = 0
         var valueEndPosition = 0
-        var lineEndPosition = 0
 
-        _ = input.prefix { value in
+        _ = try input.prefix { value in
             defer {
                 latest = value
                 index += 1
             }
 
             switch (foundCloseQuote, foundCloseSemicolon) {
-            case (false, false) where latest != .backslah && value == .quote:
+            case (false, false) where latest != .backslash && value == .quote:
+                // this is a unescaped quote, mark final position
                 foundCloseQuote = true
                 valueEndPosition = index
             case (true, false) where value != .semicolon && value != .space:
-                foundCloseQuote = false
+                throw ParsingError(description: "Unexpected character found after closing \": \(Character(UnicodeScalar(value)))")
             case (true, false) where value == .semicolon:
+                // that's it
                 foundCloseSemicolon = true
-            case (true, true) where value == .newLine:
-                lineEndPosition = index
                 return false
             default: break
             }
@@ -90,47 +78,12 @@ struct LiteralsParser: Parser {
 
         let value = input[..<endIndex]
 
-        input.removeFirst(max(lineEndPosition, index))
+        input.removeFirst(index)
 
         guard let key = String(key), let value = String(value) else {
             throw ParsingError(description: "Can't get string value")
         }
 
         return (key, value)
-    }
-
-    private static let commentParser = Parse {
-        "/*".utf8
-        Skip {
-            PrefixThrough("*/".utf8)
-        }
-    }
-
-    private static let slashCommentParser = Parse {
-        Skip {
-            Whitespace()
-            "//".utf8
-            Prefix { $0 != .newLine }
-            Newline()
-        }
-    }
-
-    private static let interStringsParser = Parse {
-        Skip {
-            Many {
-                OneOf {
-                    slashCommentParser
-                    commentParser
-                    Newline()
-                }
-            }
-        }
-    }
-
-    private static let manyKeys = Many {
-        interStringsParser
-        LiteralsParser()
-    } separator: {
-        interStringsParser
     }
 }
