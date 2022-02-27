@@ -4,12 +4,6 @@
 import Foundation
 import Parsing
 
-public struct LiteralsResult {
-    public let duplicatedKeys: [String]
-    public let updatedKeys: [Literal]
-    public let missingKeys: [String]
-}
-
 public typealias Literal = (key: String, value: String)
 
 public struct LiteralsUpdater {
@@ -24,7 +18,7 @@ public struct LiteralsUpdater {
     }
 
     @discardableResult
-    public mutating func run() throws -> LiteralsResult {
+    public mutating func run() throws -> Info {
         let destinationLiterals = try readLiterals(from: destinationURL)
 
         print("found \(destinationLiterals.count) literals on destination file")
@@ -41,7 +35,7 @@ public struct LiteralsUpdater {
 
         self.mergedLiterals = mergedLiterals
 
-        let info = LiteralsResult(duplicatedKeys: duplicatedKeys, updatedKeys: mergedLiterals, missingKeys: Array(missingKeys).sorted())
+        let info = Info(duplicatedKeys: duplicatedKeys, updatedKeys: mergedLiterals, missingKeys: Array(missingKeys).sorted())
 
         return info
     }
@@ -113,5 +107,13 @@ public struct LiteralsUpdater {
         }
 
         try handle.close()
+    }
+}
+
+public extension LiteralsUpdater {
+    struct Info {
+        public let duplicatedKeys: [String]
+        public let updatedKeys: [Literal]
+        public let missingKeys: [String]
     }
 }
