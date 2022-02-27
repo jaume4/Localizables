@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v10_15),
     ],
     products: [
-        .executable(name: "LocalizablesCLI", targets: ["LocalizablesCLI"]),
+        .executable(name: "update-localizables", targets: ["LocalizablesCLI"]),
         .library(name: "LocalizablesCore", targets: ["LocalizablesCore"]),
     ],
 
