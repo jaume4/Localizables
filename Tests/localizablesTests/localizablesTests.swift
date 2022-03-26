@@ -7,19 +7,18 @@ import XCTest
 final class LocalizablesTests: XCTestCase {
     func testLocalizableLineParser() throws {
         let testKey = "This_is_a_key"
-        let separator = " ="
 
-        let end = """
+        let testValue = #"""
+        \"Escaped\n\\\"\"\"input\"
         line
         new line
-        """
-
-        let testValue = #"\"Escaped\n\\\"\"\"input\""# + end
+        """#
 
         let comment = "  // comment"
 
-        var input = ("\"" + testKey + "\"" + separator + "\"" + testValue + "\" ;" + comment)[...]
-        print(input)
+        var input = """
+        "\(testKey)" = "\(testValue)" ;\(comment)
+        """[...]
 
         let (key, value) = try LocalizableLineParser().parse(&input.utf8)
 

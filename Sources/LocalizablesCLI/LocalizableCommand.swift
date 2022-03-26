@@ -7,23 +7,23 @@ import LocalizablesCore
 
 @main
 struct LocalizableCommand: ParsableCommand {
-    @Argument(help: "Path to the origin localizable file")
-    var originFile: String
+    @Argument(help: "Path to the localizable file to be updated")
+    var destinationFile: String
 
-    @Argument(help: "Path to the target localizable file to update")
+    @Argument(help: "Path to the localizable file containing the updates")
     var updatedFile: String
 
     mutating func run() throws {
-        let originURL = URL(string: originFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
+        let destinationURL = URL(string: destinationFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
         let updatedFileURL = URL(string: updatedFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
 
-        var original = try LiteralsReader(url: originURL)
-        printInfo(literals: original, file: "origin")
+        var destinationLiterals = try LiteralsReader(url: destinationURL)
+        printInfo(literals: destinationLiterals, file: "destination")
 
-        let updates = try LiteralsReader(url: updatedFileURL)
-        printInfo(literals: updates, file: "updated")
+        let updateLiterals = try LiteralsReader(url: updatedFileURL)
+        printInfo(literals: updateLiterals, file: "updated")
 
-        let missingKeys = original.update(from: updates)
+        let missingKeys = destinationLiterals.update(from: updateLiterals)
             .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
         if !missingKeys.isEmpty {
@@ -33,7 +33,7 @@ struct LocalizableCommand: ParsableCommand {
             print("---------------\n")
         }
 
-        try original.save()
+        try destinationLiterals.save()
     }
 
     func printInfo(literals: LiteralsReader, file: String) {
