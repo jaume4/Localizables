@@ -12,7 +12,7 @@ public struct LiteralsReader {
     public let duplicatedKeys: Set<String>
     public let keys: Set<String>
 
-    public init(url: URL) throws {
+    public init(url: URL) async throws {
         self.url = url
 
         let string = try String(contentsOf: url)
@@ -52,7 +52,7 @@ public struct LiteralsReader {
         return missingKeys
     }
 
-    public func save() throws {
+    public func save() async throws {
         let outputString = try LocalizablesParser.generateOutput(from: literals)
 
         try "".write(to: url, atomically: true, encoding: .utf8) // reset file

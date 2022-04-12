@@ -6,24 +6,26 @@ import Foundation
 import LocalizablesCore
 
 @main
-struct LocalizableCommand: ParsableCommand {
+struct LocalizableCommand: AsyncParsableCommand {
     @Argument(help: "Path to the localizable file to be updated")
     var destinationFile: String
 
     @Argument(help: "Path to the localizable file containing the updates")
     var updatedFile: String
 
-    mutating func run() throws {
+    mutating func run() async throws {
         let destinationURL = URL(string: destinationFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
         let updatedFileURL = URL(string: updatedFile.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
 
-        var destinationLiterals = try LiteralsReader(url: destinationURL)
-        printInfo(literals: destinationLiterals, file: "destination")
+        async let destinationLiterals = try LiteralsReader(url: destinationURL)
+        async let updateLiterals = try LiteralsReader(url: updatedFileURL)
 
-        let updateLiterals = try LiteralsReader(url: updatedFileURL)
-        printInfo(literals: updateLiterals, file: "updated")
+        var (destination, update) = (try await destinationLiterals, try await updateLiterals)
 
-        let missingKeys = destinationLiterals.update(from: updateLiterals)
+        printInfo(literals: destination, file: "destination")
+        printInfo(literals: update, file: "updated")
+
+        let missingKeys = destination.update(from: update)
             .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
         if !missingKeys.isEmpty {
@@ -33,7 +35,7 @@ struct LocalizableCommand: ParsableCommand {
             print("---------------\n")
         }
 
-        try destinationLiterals.save()
+        try await destination.save()
     }
 
     func printInfo(literals: LiteralsReader, file: String) {
