@@ -6,8 +6,17 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {
           "branch": null,
-          "revision": "e394bf350e38cb100b6bc4172834770ede1b7232",
-          "version": "1.0.3"
+          "revision": "f3c9084a71ef4376f2fabbdf1d3d90a49f1fabdb",
+          "version": "1.1.2"
+        }
+      },
+      {
+        "package": "swift-case-paths",
+        "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
+        "state": {
+          "branch": null,
+          "revision": "241301b67d8551c26d8f09bd2c0e52cc49f18007",
+          "version": "0.8.0"
         }
       },
       {
@@ -15,8 +24,8 @@
         "repositoryURL": "https://github.com/pointfreeco/swift-parsing.git",
         "state": {
           "branch": null,
-          "revision": "1d3aa2f359388b67c16000556830645382cd5c4f",
-          "version": "0.8.0"
+          "revision": "edb72e8022cc6fc7064eedace4d37e0df18a08f5",
+          "version": "0.9.0"
         }
       }
     ]

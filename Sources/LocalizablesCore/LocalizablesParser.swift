@@ -17,7 +17,7 @@ enum LocalizablesParser {
             Whitespace()
             "//".utf8
             Prefix { $0 != .newLine }
-            Newline()
+            Whitespace(1, .vertical)
         }
     }
 
@@ -27,14 +27,14 @@ enum LocalizablesParser {
                 OneOf {
                     slashCommentParser
                     commentParser
-                    Newline()
+                    Whitespace(1, .vertical)
                 }
             }
         }
     }
 
     @usableFromInline
-    static let manyKeys = Many(atLeast: 1) {
+    static let manyKeys = Many(1...) {
         LocalizableLineParser()
     } separator: {
         interStringsParser

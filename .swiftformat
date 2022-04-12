@@ -1,5 +1,5 @@
 #swift version
---swiftversion 5.5
+--swiftversion 5.6
 
 #headers
 --header "{file}\nLocalizables"
