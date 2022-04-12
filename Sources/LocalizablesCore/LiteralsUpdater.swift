@@ -53,16 +53,15 @@ public struct LiteralsReader {
     }
 
     public func save() throws {
+        let outputString = try LocalizablesParser.generateOutput(from: literals)
+
         try "".write(to: url, atomically: true, encoding: .utf8) // reset file
         let handle = try FileHandle(forWritingTo: url)
 
-        for (key, value) in literals {
-            let string = "\"\(key)\" = \"\(value)\";\n"
-            if #available(macOS 10.15.4, *) {
-                try handle.write(contentsOf: Data(string.utf8))
-            } else {
-                handle.write(Data(string.utf8))
-            }
+        if #available(macOS 10.15.4, *) {
+            try handle.write(contentsOf: Data(outputString))
+        } else {
+            handle.write(Data(outputString))
         }
 
         try handle.close()

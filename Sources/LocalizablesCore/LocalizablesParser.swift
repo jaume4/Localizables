@@ -48,6 +48,24 @@ enum LocalizablesParser {
         End()
     }
 
+    @usableFromInline
+    static let Printer = ParsePrint {
+        Many {
+            LocalizableLineParser()
+        } separator: {
+            Whitespace(1, .vertical)
+        } terminator: {
+            Whitespace(1, .vertical)
+        }
+    }
+
+    @inlinable
+    @inline(__always)
+    public static func generateOutput(from literals: [Literal]) throws -> Substring.UTF8View {
+        let value = try LocalizablesParser.Printer.print(literals)
+        return value
+    }
+
     @inlinable
     @inline(__always)
     public static func parse(from string: String) throws -> [Literal] {

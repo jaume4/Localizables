@@ -5,7 +5,13 @@ import Foundation
 import Parsing
 
 @usableFromInline
-struct LocalizableLineParser: Parser {
+struct LocalizableLineParser: ParserPrinter {
+    @inlinable
+    @inline(__always)
+    func print(_ output: (key: String, value: String), into input: inout Substring.UTF8View) throws {
+        input.prepend(contentsOf: ("\"" + output.key + #""=""# + output.value + "\";").utf8)
+    }
+
     @inlinable
     @inline(__always)
     func parse(_ input: inout Substring.UTF8View) throws -> Literal {
