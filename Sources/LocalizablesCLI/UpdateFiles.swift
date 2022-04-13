@@ -69,24 +69,46 @@ struct UpdateFiles: AsyncParsableCommand {
     }
 
     func match(destination: [File], update: [File]) throws -> [(URL, URL)] {
-        var update = update
+        // TODO: support same-language region variants
+
         var matchedFiles: [(URL, URL)] = []
 
+        let languages = extractLanguages(from: update)
+
         for file in destination {
-            var language = file.language // TODO: support same-language region variants
+            var language = file.language
             if language == "Base" {
                 language = baseLanguage
             }
 
-            guard let updateFileIndex = update.firstIndex(where: { $0.language.hasPrefix(language) }) else {
+            guard let updateFileIndex = languages[language] else {
                 throw "Language \(language) not found"
             }
 
-            let updateFile = update.remove(at: updateFileIndex)
+            let updateFile = update[updateFileIndex]
             matchedFiles.append((file.url, updateFile.url))
         }
 
         return matchedFiles
+    }
+
+    func extractLanguages(from files: [File]) -> [String: Int] {
+        // TODO: support same-language region variants
+
+        files.enumerated().reduce(into: [:]) { languages, arg in
+            let (index, (language, _)) = arg
+
+            let parsedLanguage: String
+
+            let splitLang = language.split(separator: "-") // "ca-ES" -> "ca"
+            if let prefixLanguage = splitLang.first {
+                parsedLanguage = String(prefixLanguage)
+            } else {
+                parsedLanguage = language
+            }
+
+            languages[parsedLanguage] = index
+        }
     }
 
     static func update(destinationURL: URL, updateURL: URL) async {
