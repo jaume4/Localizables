@@ -31,3 +31,5 @@ extension UInt8 {
     @usableFromInline
     static let equal: UInt8 = .init(ascii: "=")
 }
+
+extension String: Error {}

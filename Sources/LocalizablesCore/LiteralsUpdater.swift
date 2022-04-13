@@ -52,7 +52,7 @@ public struct LiteralsReader {
         return missingKeys
     }
 
-    public func save() async throws {
+    public func save() throws {
         let outputString = try LocalizablesParser.generateOutput(from: literals)
         let temporalFileURL = url.appendingPathExtension(".orig")
 
