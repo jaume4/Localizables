@@ -28,14 +28,20 @@ struct LocalizableCommand: AsyncParsableCommand {
         let missingKeys = destination.update(from: update)
             .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
-        if !missingKeys.isEmpty {
-            print("warning, missing keys found: \(missingKeys.count)")
-            print("\n----------------")
-            print(missingKeys.lazy.sorted().joined(separator: "\n"))
-            print("---------------\n")
+        printMissing(keys: missingKeys)
+
+        try await destinationLiterals.save()
+    }
+
+    func printMissing(keys: [String]) {
+        guard !keys.isEmpty else {
+            return
         }
 
-        try await destination.save()
+        print("warning, missing keys found: \(keys.count)")
+        print("\n----------------")
+        print(keys.lazy.sorted().joined(separator: "\n"))
+        print("---------------\n")
     }
 
     func printInfo(literals: LiteralsReader, file: String) {

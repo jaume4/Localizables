@@ -54,17 +54,13 @@ public struct LiteralsReader {
 
     public func save() async throws {
         let outputString = try LocalizablesParser.generateOutput(from: literals)
+        let temporalFileURL = url.appendingPathExtension(".orig")
 
-        try "".write(to: url, atomically: true, encoding: .utf8) // reset file
-        let handle = try FileHandle(forWritingTo: url)
+        try FileManager.default.moveItem(at: url, to: temporalFileURL)
 
-        if #available(macOS 10.15.4, *) {
-            try handle.write(contentsOf: Data(outputString))
-        } else {
-            handle.write(Data(outputString))
-        }
+        try Data(outputString).write(to: url)
 
-        try handle.close()
+        try FileManager.default.removeItem(at: temporalFileURL)
     }
 
     static func calculateDuplicates(from literals: [Literal]) -> (duplicates: Set<String>, unique: Set<String>) {
