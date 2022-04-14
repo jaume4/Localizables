@@ -11,18 +11,18 @@ struct UpdateFiles: AsyncParsableCommand {
 
     typealias File = (language: String, url: URL)
 
-    @Argument(help: "Path to the localizable file to be updated")
-    var destinationFolder: String
+    @Argument(help: "Path to the localizable file to be updated", transform: URL.init(fileURLWithPath:))
+    var destinationFolder: URL
 
-    @Argument(help: "Path to the localizable file containing the updates")
-    var updateFolder: String
+    @Argument(help: "Path to the localizable file containing the updates", transform: URL.init(fileURLWithPath:))
+    var updateFolder: URL
 
     @Option(name: .shortAndLong, help: "Base language")
     var baseLanguage = "en"
 
     mutating func run() async throws {
-        let destinationFolderURL = URL(string: destinationFolder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
-        let updateFolderURL = URL(string: updateFolder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!.fileURL
+        let destinationFolderURL = destinationFolder
+        let updateFolderURL = updateFolder
 
         let destinationFiles = try await scan(folder: destinationFolderURL)
         let updateFiles = try await scan(folder: updateFolderURL)
@@ -39,33 +39,35 @@ struct UpdateFiles: AsyncParsableCommand {
     }
 
     func scan(folder: URL) async throws -> [File] {
-        let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .nameKey]
-        let enumerator = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: Array(resourceKeys))!
+        await Task {
+            let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .nameKey]
+            let enumerator = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: Array(resourceKeys))!
 
-        return enumerator
-            .compactMap { $0 as? URL }
-            .compactMap { fileURL in
-                guard let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys),
-                      let isDirectory = resourceValues.isDirectory,
-                      !isDirectory,
-                      let name = resourceValues.name,
-                      name.hasSuffix(".strings")
-                else {
-                    return nil
+            return enumerator
+                .compactMap { $0 as? URL }
+                .compactMap { fileURL in
+                    guard let resourceValues = try? fileURL.resourceValues(forKeys: resourceKeys),
+                          let isDirectory = resourceValues.isDirectory,
+                          !isDirectory,
+                          let name = resourceValues.name,
+                          name.hasSuffix(".strings")
+                    else {
+                        return nil
+                    }
+
+                    let pathComponents = fileURL.pathComponents
+
+                    guard pathComponents.count >= 2 else {
+                        return nil
+                    }
+
+                    // ../es.lproj/XX.strings
+                    let language = pathComponents[pathComponents.count - 2]
+                        .replacingOccurrences(of: ".lproj", with: "")
+
+                    return (language, fileURL)
                 }
-
-                let pathComponents = fileURL.pathComponents
-
-                guard pathComponents.count >= 2 else {
-                    return nil
-                }
-
-                // ../es.lproj/XX.strings
-                let language = pathComponents[pathComponents.count - 2]
-                    .replacingOccurrences(of: ".lproj", with: "")
-
-                return (language, fileURL)
-            }
+        }.value
     }
 
     func match(destination: [File], update: [File]) throws -> [(URL, URL)] {
@@ -113,8 +115,8 @@ struct UpdateFiles: AsyncParsableCommand {
 
     static func update(destinationURL: URL, updateURL: URL) async {
         var fileUpdater = UpdateFile()
-        fileUpdater.destinationFile = destinationURL.absoluteString
-        fileUpdater.updatedFile = updateURL.absoluteString
+        fileUpdater.destinationFile = destinationURL
+        fileUpdater.updatedFile = updateURL
 
         do {
             try await fileUpdater.run()
