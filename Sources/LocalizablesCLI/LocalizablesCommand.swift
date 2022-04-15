@@ -1,4 +1,4 @@
-// LocalizableCommand.swift
+// LocalizablesCommand.swift
 // Localizables
 
 import ArgumentParser
@@ -6,7 +6,7 @@ import Foundation
 import LocalizablesCore
 
 @main
-struct LocalizableCommand: AsyncParsableCommand {
+struct LocalizablesCommand: AsyncParsableCommand {
     static var configuration = CommandConfiguration(abstract: "A utility for performing updates on localizable files.",
-                                                    subcommands: [UpdateFile.self, UpdateFiles.self])
+                                                    subcommands: [UpdateFileCommand.self, UpdateFolderCommand.self])
 }

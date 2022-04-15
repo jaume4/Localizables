@@ -1,10 +1,11 @@
-// Synchronizer.swift
+// OutputSynchronizer.swift
 // Localizables
 
 import Foundation
 
-actor Synchronizer {
-    private static var sync = Synchronizer()
+/// Used to sync output printing
+actor OutputSynchronizer {
+    private static var sync = OutputSynchronizer()
     private init() {}
 
     static func perform(_ action: () throws -> Void) async rethrows {

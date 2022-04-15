@@ -19,8 +19,10 @@ struct LocalizableLineParser: ParserPrinter {
             throw ParsingError(description: "Line does not start with \"")
         }
 
+        // skip first "
         input.removeFirst()
 
+        // key goes till next "
         let key = input.prefix {
             $0 != .quote
         }
@@ -29,6 +31,8 @@ struct LocalizableLineParser: ParserPrinter {
 
         var foundEqual = false
 
+        // find value starting quote: chars between the key quote and the value quote, allowing only spaces and one =
+        // a comment could be in there but wtf
         let startOfValue = try input.prefix { value in
 
             switch foundEqual {
@@ -47,6 +51,7 @@ struct LocalizableLineParser: ParserPrinter {
             return true
         }
 
+        // remove till start of value
         input.removeFirst(startOfValue.count + 1)
 
         var latest: UInt8 = 0
@@ -56,6 +61,8 @@ struct LocalizableLineParser: ParserPrinter {
         var index = 0
         var valueEndPosition = 0
 
+        // consume till we find the value end: quote + any spaces + ;
+        // also keep track of escaped quotes to avoid mismatching the closing quote
         _ = try input.prefix { value in
             defer {
                 latest = value
@@ -68,12 +75,14 @@ struct LocalizableLineParser: ParserPrinter {
                 foundCloseQuote = true
                 valueEndPosition = index
             case (true, false) where value == .semicolon:
-                // that's it
+                // that's it, found closing semicolon
                 foundCloseSemicolon = true
                 return false
             case (true, false) where value != .semicolon && value != .space:
                 throw ParsingError(description: #"Unexpected character found after closing `"` -> ""# + "\(Character(UnicodeScalar(value)))")
-            default: break
+            default:
+                // this is part of the value keep going
+                break
             }
 
             return true

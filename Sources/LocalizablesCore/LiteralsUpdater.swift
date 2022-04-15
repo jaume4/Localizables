@@ -6,14 +6,16 @@ import Parsing
 
 public typealias Literal = (key: String, value: String)
 
-public struct LiteralsReader {
+public struct LiteralsFile {
     public let url: URL
     public private(set) var literals: [Literal]
     public let duplicatedKeys: Set<String>
     public let keys: Set<String>
+    public private(set) var missingKeys: [String]
 
     public init(url: URL) async throws {
         self.url = url
+        missingKeys = []
 
         let string = try String(contentsOf: url)
         literals = try LocalizablesParser.parse(from: string)
@@ -21,7 +23,10 @@ public struct LiteralsReader {
         (duplicatedKeys, keys) = Self.calculateDuplicates(from: literals)
     }
 
-    public mutating func update(from origin: LiteralsReader) -> Set<String> {
+    /// Updates any found existing key from the origin file.
+    /// If a key is not found, it will keep the original value
+    /// - Parameter origin: Origin file
+    public mutating func update(from origin: LiteralsFile) {
         var foundKeys: Set<String> = []
         foundKeys.reserveCapacity(literals.count)
 
@@ -34,7 +39,8 @@ public struct LiteralsReader {
             }
         }
 
-        let missingKeys = keys.subtracting(foundKeys)
+        missingKeys = keys.subtracting(foundKeys)
+            .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
         if !missingKeys.isEmpty { // If we have missing literals, find them on the original one
             for (key, value) in literals {
@@ -44,12 +50,8 @@ public struct LiteralsReader {
             }
         }
 
-        let sorted = mergedLiterals
+        literals = mergedLiterals // overwrite literals with the merged ones and sort them
             .sorted(by: { $0.key.caseInsensitiveCompare($1.key) == .orderedAscending })
-
-        literals = sorted
-
-        return missingKeys
     }
 
     public func save() throws {

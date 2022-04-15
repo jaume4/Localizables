@@ -1,11 +1,11 @@
-// UpdateFiles.swift
+// UpdateFolderCommand.swift
 // Localizables
 
 import ArgumentParser
 import Foundation
 import LocalizablesCore
 
-struct UpdateFiles: AsyncParsableCommand {
+struct UpdateFolderCommand: AsyncParsableCommand {
     static var configuration = CommandConfiguration(commandName: "folder",
                                                     abstract: "Search and update the contents of a folder.")
 
@@ -21,6 +21,7 @@ struct UpdateFiles: AsyncParsableCommand {
     var baseLanguage = "en"
 
     mutating func run() async throws {
+        // avoid error: reference to captured parameter 'self' in concurrently-executing code
         let destinationFolderURL = destinationFolder
         let updateFolderURL = updateFolder
 
@@ -38,6 +39,8 @@ struct UpdateFiles: AsyncParsableCommand {
         }
     }
 
+    /// Scans the URL attempting to find .strings files and extracting it's language from it's url
+    /// Expects the URL to have ../es.lproj/XX.strings format
     func scan(folder: URL) async throws -> [File] {
         await Task {
             let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .nameKey]
@@ -70,6 +73,7 @@ struct UpdateFiles: AsyncParsableCommand {
         }.value
     }
 
+    /// Matches the files to destination files with the update ones based on language
     func match(destination: [File], update: [File]) throws -> [(URL, URL)] {
         // TODO: support same-language region variants
 
@@ -94,6 +98,10 @@ struct UpdateFiles: AsyncParsableCommand {
         return matchedFiles
     }
 
+    /// Extract the language the file path: ../ca-ES.lproj/xx.strings
+    /// - Attention: Does not support same-language region variants
+    /// - Parameter files: Found strings files
+    /// - Returns: A dictionary containing the language as key and it's position on the files array as a value
     func extractLanguages(from files: [File]) -> [String: Int] {
         // TODO: support same-language region variants
 
@@ -113,8 +121,9 @@ struct UpdateFiles: AsyncParsableCommand {
         }
     }
 
+    /// Tries to update the destination file with the values found on the update file
     static func update(destinationURL: URL, updateURL: URL) async {
-        var fileUpdater = UpdateFile()
+        var fileUpdater = UpdateFileCommand()
         fileUpdater.destinationFile = destinationURL
         fileUpdater.updatedFile = updateURL
 
