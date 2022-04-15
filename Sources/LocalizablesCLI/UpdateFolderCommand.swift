@@ -88,7 +88,7 @@ struct UpdateFolderCommand: AsyncParsableCommand {
             }
 
             guard let updateFileIndex = languages[language] else {
-                throw "Language \(language) not found"
+                throw "Language not found at \(file.url)"
             }
 
             let updateFile = update[updateFileIndex]
@@ -130,7 +130,10 @@ struct UpdateFolderCommand: AsyncParsableCommand {
         do {
             try await fileUpdater.run()
         } catch {
-            print("Failed to update \(destinationURL): \(error.localizedDescription)")
+            var stdError = FileHandle.standardError
+            print(String.separator, to: &stdError)
+            print("Failed to update \(destinationURL)".red, to: &stdError)
+            print(error, to: &stdError)
         }
     }
 }

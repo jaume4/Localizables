@@ -32,8 +32,8 @@ struct UpdateFileCommand: AsyncParsableCommand {
         try destination.save()
 
         await OutputSynchronizer.perform {
-            print("\n" + String(repeating: "-", count: 32))
-            print("Updated \(destinationURL) with \(updateURL)")
+            print(String.separator)
+            print("Updated \(destinationURL) with \(updateURL)".green)
             printInfo(file: destination, name: "destination")
             printInfo(file: update, name: "updated")
             printMissing(keys: missingKeys)
@@ -45,9 +45,11 @@ struct UpdateFileCommand: AsyncParsableCommand {
             return
         }
 
-        print("\n\nwarning found \(keys.count) missing keys ")
+        var stdError = FileHandle.standardError
+
+        print("\nwarning found \(keys.count) missing keys ".yellow, to: &stdError)
         keys.lazy.sorted().forEach {
-            print("  ", $0)
+            print("  ", $0, to: &stdError)
         }
     }
 
@@ -56,13 +58,15 @@ struct UpdateFileCommand: AsyncParsableCommand {
             return
         }
 
-        print("\n\nwarning found \(file.duplicatedKeys.count) duplicated keys on \(name), unique keys count: \(file.keys.count)")
+        var stdError = FileHandle.standardError
+
+        print("\nwarning found \(file.duplicatedKeys.count) duplicated keys on \(name), unique keys count: \(file.keys.count)".yellow, to: &stdError)
 
         let sortedDuplicates = file.duplicatedKeys
             .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
         sortedDuplicates.forEach {
-            print("  ", $0)
+            print("  ", $0, to: &stdError)
         }
     }
 }
