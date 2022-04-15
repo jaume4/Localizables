@@ -30,12 +30,12 @@ struct UpdateFolderCommand: AsyncParsableCommand {
 
         let filePairs = try match(destination: destinationFiles, update: updateFiles)
 
-        await withTaskGroup(of: Void.self) { group in
-            filePairs.forEach { destinationURL, updateURL in
-                group.addTask {
-                    await Self.update(destinationURL: destinationURL, updateURL: updateURL)
-                }
-            }
+        let (successCount, failureCount) = await update(filePairs)
+
+        if failureCount > 0 {
+            throw "Failed to update \(failureCount) files, \(successCount) files updated successfully".red
+        } else {
+            print("Updated \(successCount) files successfully".green)
         }
     }
 
@@ -121,19 +121,40 @@ struct UpdateFolderCommand: AsyncParsableCommand {
         }
     }
 
+    private func update(_ filePairs: [(URL, URL)]) async -> (Int, Int) {
+        return await withTaskGroup(of: Bool.self) { group in
+            filePairs.forEach { destinationURL, updateURL in
+                group.addTask {
+                    await Self.update(destinationURL: destinationURL, updateURL: updateURL)
+                }
+            }
+
+            var successCount = 0
+            var failureCount = 0
+
+            for await succeeded in group {
+                succeeded ? (successCount += 1) : (failureCount += 1)
+            }
+
+            return (successCount, failureCount)
+        }
+    }
+
     /// Tries to update the destination file with the values found on the update file
-    static func update(destinationURL: URL, updateURL: URL) async {
+    static func update(destinationURL: URL, updateURL: URL) async -> Bool {
         var fileUpdater = UpdateFileCommand()
         fileUpdater.destinationFile = destinationURL
         fileUpdater.updatedFile = updateURL
 
         do {
             try await fileUpdater.run()
+            return true
         } catch {
             var stdError = FileHandle.standardError
             print(String.separator, to: &stdError)
             print("Failed to update \(destinationURL)".red, to: &stdError)
             print(error, to: &stdError)
+            return false
         }
     }
 }
