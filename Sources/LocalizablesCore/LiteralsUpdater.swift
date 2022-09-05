@@ -60,7 +60,7 @@ public struct LiteralsFile {
 
         try FileManager.default.moveItem(at: url, to: temporalFileURL)
 
-        try Data(outputString).write(to: url)
+        try Data(String(outputString).utf8).write(to: url)
 
         try FileManager.default.removeItem(at: temporalFileURL)
     }

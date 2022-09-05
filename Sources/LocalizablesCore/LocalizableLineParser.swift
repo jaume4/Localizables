@@ -8,13 +8,13 @@ import Parsing
 struct LocalizableLineParser: ParserPrinter {
     @inlinable
     @inline(__always)
-    func print(_ output: (key: String, value: String), into input: inout Substring.UTF8View) throws {
-        input.prepend(contentsOf: ("\"" + output.key + #""=""# + output.value + "\";").utf8)
+    func print(_ output: (key: String, value: String), into input: inout Substring) throws {
+        input.prepend(contentsOf: "\"" + output.key + #""=""# + output.value + "\";")
     }
 
     @inlinable
     @inline(__always)
-    func parse(_ input: inout Substring.UTF8View) throws -> Literal {
+    func parse(_ input: inout Substring) throws -> Literal {
         guard input.first == .quote else {
             throw ParsingError(description: "Line does not start with \"")
         }
@@ -54,7 +54,7 @@ struct LocalizableLineParser: ParserPrinter {
         // remove till start of value
         input.removeFirst(startOfValue.count + 1)
 
-        var latest: UInt8 = 0
+        var latest: Character = .init(.init(0x0))
         var foundCloseQuote = false
         var foundCloseSemicolon = false
 
@@ -79,7 +79,7 @@ struct LocalizableLineParser: ParserPrinter {
                 foundCloseSemicolon = true
                 return false
             case (true, false) where value != .semicolon && value != .space:
-                throw ParsingError(description: #"Unexpected character found after closing `"` -> ""# + "\(Character(UnicodeScalar(value)))")
+                throw ParsingError(description: #"Unexpected character found after closing `"` -> ""# + "\(value))")
             default:
                 // this is part of the value keep going
                 break
@@ -98,10 +98,6 @@ struct LocalizableLineParser: ParserPrinter {
 
         input.removeFirst(index)
 
-        guard let key = String(key), let value = String(value) else {
-            throw ParsingError(description: "Can't get string value")
-        }
-
-        return (key, value)
+        return (String(key), String(value))
     }
 }

@@ -6,17 +6,17 @@ import Parsing
 
 enum LocalizablesParser {
     static let commentParser = Parse {
-        "/*".utf8
+        "/*"
         Skip {
-            PrefixThrough("*/".utf8)
+            PrefixThrough("*/")
         }
     }
 
     static let slashCommentParser = Parse {
         Skip {
             Whitespace()
-            "//".utf8
-            Prefix { $0 != .newLine }
+            "//"
+            Prefix { !$0.isNewline }
             Whitespace(1, .vertical)
         }
     }
@@ -61,7 +61,7 @@ enum LocalizablesParser {
 
     @inlinable
     @inline(__always)
-    public static func generateOutput(from literals: [Literal]) throws -> Substring.UTF8View {
+    public static func generateOutput(from literals: [Literal]) throws -> Substring {
         let value = try LocalizablesParser.Printer.print(literals)
         return value
     }
@@ -69,6 +69,6 @@ enum LocalizablesParser {
     @inlinable
     @inline(__always)
     public static func parse(from string: String) throws -> [Literal] {
-        try fileParser.parse(string[...].utf8)
+        try fileParser.parse(string[...])
     }
 }

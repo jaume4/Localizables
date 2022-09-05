@@ -20,7 +20,7 @@ final class LocalizablesTests: XCTestCase {
         "\(testKey)" = "\(testValue)" ;\(comment)
         """[...]
 
-        let (key, value) = try LocalizableLineParser().parse(&input.utf8)
+        let (key, value) = try LocalizableLineParser().parse(&input)
 
         XCTAssertEqual(key, testKey)
         XCTAssertEqual(value, testValue)
