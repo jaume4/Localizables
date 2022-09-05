@@ -15,8 +15,8 @@ let package = Package(name: "LocalizablesTools",
                       dependencies: [
                           // Dependencies declare other packages that this package depends on.
                           // .package(url: /* package url */, from: "1.0.0"),
-                          .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.1.2"),
-                          .package(url: "https://github.com/pointfreeco/swift-parsing.git", from: "0.9.2"),
+                          .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.1.4"),
+                          .package(url: "https://github.com/pointfreeco/swift-parsing.git", exact: "0.10.0"),
                       ],
                       targets: [
                           // Targets are the basic building blocks of a package. A target can define a module or a test suite.

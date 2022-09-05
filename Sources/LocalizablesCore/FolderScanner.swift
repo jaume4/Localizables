@@ -5,7 +5,7 @@ import Foundation
 
 public struct FolderScanner {
     typealias File = (language: String, url: URL)
-    public typealias FileUpdateResult = (file: URL, result: Result<[String], Error>)
+    public typealias FilePair = (source: URL, destination: URL)
 
     let destinationFolder: URL
     let updateFolder: URL
@@ -20,7 +20,7 @@ public struct FolderScanner {
     /// Scans the given URLs attempting to find .strings files and extracting the language from it's path
     /// - Note: Expects the URL to have ../es.lproj/XX.strings format
     /// - Returns: Matched files
-    public func findMatches() async throws -> [(URL, URL)] {
+    public func findMatches() async throws -> [FilePair] {
         let destinationFiles = try await scan(folder: destinationFolder)
         let updateFiles = try await scan(folder: updateFolder)
 
@@ -62,10 +62,10 @@ public struct FolderScanner {
     }
 
     /// Matches the files to destination files with the update ones based on language
-    func match(destination: [File], update: [File]) throws -> [(URL, URL)] {
+    func match(destination: [File], update: [File]) throws -> [FilePair] {
         // TODO: support same-language region variants
 
-        var matchedFiles: [(URL, URL)] = []
+        var matchedFiles: [FilePair] = []
 
         let languages = extractLanguages(from: update)
 
