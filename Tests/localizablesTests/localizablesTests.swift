@@ -79,11 +79,12 @@ final class LocalizablesTests: XCTestCase {
         /* more*/
         "key6"   =    "value6
         with line";
+        "key7"="value7"     ;
 
         """
 
         let literals = try LocalizablesParser.parse(from: testString)
-        XCTAssertEqual(literals.count, 6)
+        XCTAssertEqual(literals.count, 7)
         XCTAssertEqual(literals[0].key, "key1")
         XCTAssertEqual(literals[0].value, "value1")
 
@@ -101,5 +102,9 @@ final class LocalizablesTests: XCTestCase {
 
         XCTAssertEqual(literals[5].key, "key6")
         XCTAssertEqual(literals[5].value, "value6\nwith line")
+
+        XCTAssertEqual(literals[6].key, "key7")
+        XCTAssertEqual(literals[6].value, "value7")
+    }
     }
 }
