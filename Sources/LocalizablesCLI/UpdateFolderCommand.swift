@@ -11,10 +11,10 @@ struct UpdateFolderCommand: AsyncParsableCommand {
 
     typealias File = (language: String, url: URL)
 
-    @Argument(help: "Path to the localizable file to be updated", transform: URL.init(fileURLWithPath:))
+    @Argument(help: "Path to the folder containing the .strings files to be updated", transform: URL.init(fileURLWithPath:))
     var destinationFolder: URL
 
-    @Argument(help: "Path to the localizable file containing the updates", transform: URL.init(fileURLWithPath:))
+    @Argument(help: "Path to the folder containing the .strings files to use as updates", transform: URL.init(fileURLWithPath:))
     var updateFolder: URL
 
     @Option(name: .shortAndLong, help: "Base language")
