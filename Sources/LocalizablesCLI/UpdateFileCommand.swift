@@ -15,6 +15,13 @@ struct UpdateFileCommand: AsyncParsableCommand {
     @Argument(help: "Path to the localizable file containing the updates", transform: URL.init(fileURLWithPath:))
     var updatedFile: URL
 
+    init() {}
+
+    init(destinationFile: URL, updateFile: URL) {
+        self.destinationFile = destinationFile
+        updatedFile = updateFile
+    }
+
     mutating func run() async throws {
         // avoid error: reference to captured parameter 'self' in concurrently-executing code
         let destinationURL = destinationFile
@@ -25,7 +32,7 @@ struct UpdateFileCommand: AsyncParsableCommand {
 
         var (destination, update) = (try await destinationFile, try await updateFile)
 
-        destination.update(from: update)
+        destination.update(with: update)
 
         let missingKeys = destination.missingKeys
 

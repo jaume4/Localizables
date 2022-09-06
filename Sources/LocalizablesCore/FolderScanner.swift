@@ -5,7 +5,7 @@ import Foundation
 
 public struct FolderScanner {
     typealias File = (language: String, url: URL)
-    public typealias FilePair = (source: URL, destination: URL)
+    public typealias FilePair = (source: URL, update: URL)
 
     let destinationFolder: URL
     let updateFolder: URL
@@ -21,15 +21,15 @@ public struct FolderScanner {
     /// - Note: Expects the URL to have ../es.lproj/XX.strings format
     /// - Returns: Matched files
     public func findMatches() async throws -> [FilePair] {
-        let destinationFiles = try await scan(folder: destinationFolder)
-        let updateFiles = try await scan(folder: updateFolder)
+        async let destinationFiles = scan(folder: destinationFolder)
+        async let updateFiles = scan(folder: updateFolder)
 
-        let filePairs = try match(destination: destinationFiles, update: updateFiles)
+        let filePairs = try match(destination: await destinationFiles, update: await updateFiles)
 
         return filePairs
     }
 
-    func scan(folder: URL) async throws -> [File] {
+    func scan(folder: URL) async -> [File] {
         await Task {
             let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .nameKey]
             let enumerator = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: Array(resourceKeys))!

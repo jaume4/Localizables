@@ -54,9 +54,7 @@ struct UpdateFolderCommand: AsyncParsableCommand {
     }
 
     func update(destinationURL: URL, updateURL: URL) async -> Bool {
-        var fileUpdater = UpdateFileCommand()
-        fileUpdater.destinationFile = destinationURL
-        fileUpdater.updatedFile = updateURL
+        var fileUpdater = UpdateFileCommand(destinationFile: destinationURL, updateFile: updateURL)
 
         do {
             try await fileUpdater.run()

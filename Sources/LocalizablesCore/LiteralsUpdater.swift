@@ -26,7 +26,7 @@ public struct LiteralsFile {
     /// Updates any found existing key from the origin file.
     /// If a key is not found, it will keep the original value
     /// - Parameter origin: Origin file
-    public mutating func update(from origin: LiteralsFile) {
+    public mutating func update(with origin: LiteralsFile) {
         var foundKeys: Set<String> = []
         foundKeys.reserveCapacity(literals.count)
 
