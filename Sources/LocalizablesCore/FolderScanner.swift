@@ -24,7 +24,7 @@ public struct FolderScanner {
         async let destinationFiles = scan(folder: destinationFolder)
         async let updateFiles = scan(folder: updateFolder)
 
-        let filePairs = try match(destination: await destinationFiles, update: await updateFiles)
+        let filePairs = try await match(destination: destinationFiles, update: updateFiles)
 
         return filePairs
     }

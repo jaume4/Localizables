@@ -30,7 +30,7 @@ struct UpdateFileCommand: AsyncParsableCommand {
         async let destinationFile = try LiteralsFile(url: destinationURL)
         async let updateFile = try LiteralsFile(url: updateURL)
 
-        var (destination, update) = (try await destinationFile, try await updateFile)
+        var (destination, update) = try await (destinationFile, updateFile)
 
         destination.update(with: update)
 
