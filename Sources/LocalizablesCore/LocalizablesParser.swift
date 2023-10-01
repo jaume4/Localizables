@@ -5,14 +5,14 @@ import Foundation
 import Parsing
 
 enum LocalizablesParser {
-    static let commentParser = Parse {
+    static let commentParser = Parse(input: Substring.self) {
         "/*"
         Skip {
             PrefixThrough("*/")
         }
     }
 
-    static let slashCommentParser = Parse {
+    static let slashCommentParser = Parse(input: Substring.self) {
         Skip {
             Whitespace()
             "//"
@@ -21,7 +21,7 @@ enum LocalizablesParser {
         }
     }
 
-    static let interStringsParser = Parse {
+    static let interStringsParser = Parse(input: Substring.self) {
         Skip {
             Many {
                 OneOf {
