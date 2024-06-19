@@ -36,7 +36,7 @@ struct UpdateFolderCommand: AsyncParsableCommand {
 
     private func update(_ filePairs: [FolderScanner.FilePair]) async -> (successCount: Int, failureCount: Int) {
         await withTaskGroup(of: Bool.self) { group in
-            filePairs.forEach { destinationURL, updateURL in
+            for (destinationURL, updateURL) in filePairs {
                 group.addTask {
                     await update(destinationURL: destinationURL, updateURL: updateURL)
                 }

@@ -2,25 +2,25 @@
 // Localizables
 
 import Foundation
-import Parsing
-
-public typealias Literal = (key: String, value: String)
 
 public struct LiteralsFile {
     public let url: URL
-    public private(set) var literals: [Literal]
-    public let duplicatedKeys: Set<String>
-    public let keys: Set<String>
+    public private(set) var literals: [String: String]
     public private(set) var missingKeys: [String]
+
+    var keys: Dictionary<String, String>.Keys {
+        literals.keys
+    }
 
     public init(url: URL) async throws {
         self.url = url
         missingKeys = []
 
-        let string = try String(contentsOf: url)
-        literals = try LocalizablesParser.parse(from: string)
-            .sorted(by: { $0.key.caseInsensitiveCompare($1.key) == .orderedAscending })
-        (duplicatedKeys, keys) = Self.calculateDuplicates(from: literals)
+        guard let literals = try NSDictionary(contentsOf: url, error: ()) as? [String: String] else {
+            throw "Cant read file \(url)"
+        }
+
+        self.literals = literals
     }
 
     /// Updates any found existing key from the origin file.
@@ -30,32 +30,35 @@ public struct LiteralsFile {
         var foundKeys: Set<String> = []
         foundKeys.reserveCapacity(literals.count)
 
-        var mergedLiterals: [Literal] = []
+        var mergedLiterals: [String: String] = [:]
         mergedLiterals.reserveCapacity(literals.count)
 
         for (key, value) in origin.literals {
-            if keys.contains(key), foundKeys.insert(key).inserted {
-                mergedLiterals.append((key, value))
+            if keys.contains(key) {
+                foundKeys.insert(key)
+                mergedLiterals[key] = value
             }
         }
 
-        missingKeys = keys.subtracting(foundKeys)
+        missingKeys = Set(keys).subtracting(foundKeys)
             .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
 
         if !missingKeys.isEmpty { // If we have missing literals, find them on the original one
             for (key, value) in literals {
                 if foundKeys.insert(key).inserted {
-                    mergedLiterals.append((key, value))
+                    mergedLiterals[key] = value
                 }
             }
         }
 
-        literals = mergedLiterals // overwrite literals with the merged ones and sort them
-            .sorted(by: { $0.key.caseInsensitiveCompare($1.key) == .orderedAscending })
+        literals = mergedLiterals // overwrite literals with the merged ones
     }
 
     public func save() throws {
-        let outputString = try LocalizablesParser.generateOutput(from: literals)
+        let sortedKeys = keys.sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
+        let outputString = sortedKeys.reduce(into: "") { output, key in
+            output.append("\"\(key)\"=\"\(literals[key]!)\";\n")
+        }
         let temporalFileURL = url.appendingPathExtension(".orig")
 
         try FileManager.default.moveItem(at: url, to: temporalFileURL)
@@ -63,15 +66,5 @@ public struct LiteralsFile {
         try Data(String(outputString).utf8).write(to: url)
 
         try FileManager.default.removeItem(at: temporalFileURL)
-    }
-
-    static func calculateDuplicates(from literals: [Literal]) -> (duplicates: Set<String>, unique: Set<String>) {
-        var uniqueKeys: Set<String> = Set(minimumCapacity: literals.count)
-
-        let duplicatedKeys = Set(literals
-            .map(\.key)
-            .filter { !uniqueKeys.insert($0).inserted })
-
-        return (duplicatedKeys, uniqueKeys)
     }
 }

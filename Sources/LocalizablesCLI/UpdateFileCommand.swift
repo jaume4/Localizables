@@ -41,8 +41,6 @@ struct UpdateFileCommand: AsyncParsableCommand {
         await OutputSynchronizer.perform {
             print(String.separator)
             print("Updated \(destinationURL) with \(updateURL)".green)
-            printInfo(file: destination, name: "destination")
-            printInfo(file: update, name: "updated")
             printMissing(keys: missingKeys)
         }
     }
@@ -55,25 +53,8 @@ struct UpdateFileCommand: AsyncParsableCommand {
         var stdError = FileHandle.standardError
 
         print("\nwarning found \(keys.count) missing keys ".yellow, to: &stdError)
-        keys.lazy.sorted().forEach {
-            print("  ", $0, to: &stdError)
-        }
-    }
-
-    func printInfo(file: LiteralsFile, name: String) {
-        guard !file.duplicatedKeys.isEmpty else {
-            return
-        }
-
-        var stdError = FileHandle.standardError
-
-        print("\nwarning found \(file.duplicatedKeys.count) duplicated keys on \(name), unique keys count: \(file.keys.count)".yellow, to: &stdError)
-
-        let sortedDuplicates = file.duplicatedKeys
-            .sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
-
-        sortedDuplicates.forEach {
-            print("  ", $0, to: &stdError)
+        for key in keys.lazy.sorted() {
+            print("  ", key, to: &stdError)
         }
     }
 }
