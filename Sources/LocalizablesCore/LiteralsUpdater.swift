@@ -57,7 +57,7 @@ public struct LiteralsFile {
     public func save() throws {
         let sortedKeys = keys.sorted(by: { $0.caseInsensitiveCompare($1) == .orderedAscending })
         let outputString = sortedKeys.reduce(into: "") { output, key in
-            output.append("\"\(key)\"=\"\(literals[key]!)\";\n")
+            output.append("\"\(key)\"=\"\(literals[key]!.replacingOccurrences(of: #"""#, with: #"\""#))\";\n")
         }
         let temporalFileURL = url.appendingPathExtension(".orig")
 
